@@ -65,17 +65,32 @@ class CPUSlider(QtGui.QMainWindow):
         # Set the slider bar to the current frequency.
         with open(CPUFREQ + 'scaling_cur_freq') as f:
             freq = f.read().strip()
-        # The label will be updated by the signal to updateLabel.
+        # Set the slider value without invoking updateLabel, because it
+        # changes the governor and the frequency.
+        self.disconnect(self.slider, QtCore.SIGNAL('valueChanged(int)'),
+                    self.updateLabel)
         self.slider.setValue(len(self.freqs) - self.freqs.index(freq) - 1)
+        self.connect(self.slider, QtCore.SIGNAL('valueChanged(int)'),
+                     self.updateLabel)
+        if governor in ("userspace", "powersave", "performance"):
+            self.label.setText("%.1fGHz" % (float(freq) / 1e6))
+        else:
+            self.label.setText("Dynamic")
 
     def updateLabel(self, value):
         new_freq = self.freqs[-value - 1]
-        self.label.setText("%.1fGHz" % (float(new_freq) / 1e6))
         with open(CPUFREQ + 'scaling_governor') as f:
             governor = f.read().strip()
+        if governor in ("userspace", "powersave", "performance"):
+            self.label.setText("%.1fGHz" % (float(new_freq) / 1e6))
+        else:
+            self.label.setText("Dynamic")
         if governor != "userspace":
-            with open(CPUFREQ + 'scaling_governor') as f:
+            with open(CPUFREQ + 'scaling_governor', 'w') as f:
                 f.write("userspace\n")
+            for button in self.buttons:
+                if button.text() == "userspace":
+                    button.setChecked(True)
         with open(CPUFREQ + 'scaling_setspeed', 'w') as f:
             f.write(new_freq + '\n')
 
