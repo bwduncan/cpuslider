@@ -62,7 +62,7 @@ class CPUSlider(QtGui.QMainWindow):
         with open(CPUFREQ + 'scaling_available_governors') as f:
             governors = f.read().split()
         # Remove governors which no longer exist
-        for button in self.buttons: # TODO Can't test this easily...
+        for button in self.buttons:  # TODO Can't test this easily...
             if button.text() not in governors:
                 button.deleteLater()
                 self.buttons.remove(button)
@@ -91,6 +91,7 @@ class CPUSlider(QtGui.QMainWindow):
             with open(CPUFREQ + 'scaling_governor', 'w') as f:
                 f.write(name + '\n')
             self.refresh()
+
 
 def main():
     app = QtGui.QApplication(sys.argv)
